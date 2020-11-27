@@ -1,7 +1,7 @@
 package Robot;
 
-import Simulation.Robots;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -9,7 +9,7 @@ public class OutputMachineCommand {
     Map<String, Robot> robots;
     private String command;
     private String[] target;
-    private String[] obstacle = {"1,1,1"};
+    private String[] obstacle = {"0,0,2","0,0,3","0,-1,3"};
     Scanner scanner = new Scanner(System.in);
 
     public OutputMachineCommand(String command, Map<String, Robot> robots) {
@@ -202,6 +202,7 @@ public class OutputMachineCommand {
     }
 
     private Robot movement(Robot entity, String[] location) {
+        ArrayList<String> arrayList = new ArrayList<String>();
         int x = entity.getX();
         int y = entity.getY();
         int z = entity.getZ();
@@ -210,38 +211,301 @@ public class OutputMachineCommand {
         if (location[2] == "-") location[2] = Integer.toString(z);
         int[] coordinate = {Integer.parseInt(location[0]), Integer.parseInt(location[1]), Integer.parseInt(location[2])};
         int[] flag = new int[3];
+        int[] oldFlag = new int[]{0,0,0};
+        boolean obstacle_flag = false;
         while (true) {
-            if (coordinate[0] > x) flag[0] = +1;
-            else if (coordinate[0] < x) flag[0] = -1;
-            else if (coordinate[0] == 0) flag[0] = 0;
-            if (coordinate[1] > y) flag[1] = +1;
-            else if (coordinate[1] < y) flag[1] = -1;
-            else if (coordinate[1] == 0) flag[1] = 0;
-            if (coordinate[2] > z) flag[2] = +1;
-            else if (coordinate[2] < z) flag[2] = -1;
-            else if (coordinate[2] == 0) flag[2] = 0;
-            if (sensor(flag, entity.getD(), entity)) {
-                location[0] = Integer.toString(entity.getX());
-                location[1] = Integer.toString(entity.getY() + 1);
-                location[2] = Integer.toString(entity.getZ());
-                entity = movement(entity, location);
+            x = entity.getX();
+            y = entity.getY();
+            z = entity.getZ();
+
+            arrayList.add(Integer.toString(x)+Integer.toString(y)+Integer.toString(z));
+            List<String> resultList = new ArrayList<String>();
+            for(String a : arrayList){
+                if(!resultList.contains(a)){
+                    resultList.add(a);
+                }
             }
-            if (flag[0] == 1 && coordinate[0] != x) x++;
-            else if (flag[0] == -1 && coordinate[0] != x) x--;
-            if (flag[1] == 1 && coordinate[1] != y) y++;
-            else if (flag[1] == -1 && coordinate[1] != y) y--;
-            if (flag[2] == 1 && coordinate[2] != z) z++;
-            else if (flag[2] == -1 && coordinate[2] != z) z--;
-            entity.setX(x);
-            entity.setY(y);
-            entity.setZ(z);
-            if (coordinate[0] == x && coordinate[1] == y && coordinate[2] == z) {
+            if(arrayList.size() == resultList.size()+10){
+                System.out.println("지정된 위치에는 장애물이 있기 때문에 갈 수 없습니다.");
+                return entity;
+            }
+            System.out.println("********* x: "+x+" y:  "+y+"  z:  "+z+"   **********");
+            int[] end_location = {coordinate[0]-x, coordinate[1]-y, coordinate[2]-z};
+            if(end_location[0] == 0 && end_location[1] == 0 && end_location[2] == 0){
+                return entity;
+            }
+            if(oldFlag[0] == 0 && oldFlag[1] == 0 && oldFlag[2] == 0 ) {
+                if (end_location[0] > 0)
+                    flag = new int[]{1, 0, 0};
+                else if (end_location[0] < 0)
+                    flag = new int[]{-1, 0, 0};
+                else if (end_location[1] > 0)
+                    flag = new int[]{0, 1, 0};
+                else if (end_location[2] > 0)
+                    flag = new int[]{0, 0, 1};
+                else if (end_location[2] < 0)
+                    flag = new int[]{0, 0, -1};
+                else if (end_location[1] < 0)
+                    flag = new int[]{0, -1, 0};
+            }else if( oldFlag[0] == 0 && oldFlag[1] == 1 && oldFlag[2] == 0  ) {
+                if (end_location[1] > 0)
+                    flag = new int[]{0, 1, 0};
+                else if (end_location[2] > 0)
+                    flag = new int[]{0, 0, 1};
+                else if (end_location[0] > 0)
+                    flag = new int[]{1, 0, 0};
+                else if (end_location[2] < 0)
+                    flag = new int[]{0, 0, -1};
+                else if (end_location[0] < 0)
+                    flag = new int[]{-1, 0, 0};
+            }else if( oldFlag[0] == 0 && oldFlag[1] == 0 && oldFlag[2] == 1  ) {
+                if (end_location[2] > 0)
+                    flag = new int[]{0, 0, 1};
+                else if (end_location[1] < 0)
+                    flag = new int[]{0, -1, 0};
+                else if (end_location[0] < 0)
+                    flag = new int[]{-1, 0, 0};
+                else if (end_location[1] > 0)
+                    flag = new int[]{0, 1, 0};
+                else if (end_location[0] > 0)
+                    flag = new int[]{1, 0, 0};
+            }else if( oldFlag[0] == 0 && oldFlag[1] == 0 && oldFlag[2] == -1  ) {
+                if (end_location[2] < 0)
+                    flag = new int[]{0, 0, -1};
+                else if (end_location[1] > 0)
+                    flag = new int[]{0, 1, 0};
+                else if (end_location[0] > 0)
+                    flag = new int[]{1, 0, 0};
+                else if (end_location[1] < 0)
+                    flag = new int[]{0, -1, 0};
+                else if (end_location[0] < 0)
+                    flag = new int[]{-1, 0, 0};
+            }else if( oldFlag[0] == 1 && oldFlag[1] == 0 && oldFlag[2] == 0  ) {
+                if (end_location[0] > 0)
+                    flag = new int[]{1, 0, 0};
+                else if (end_location[2] > 0)
+                    flag = new int[]{0, 0, 1};
+                else if (end_location[1] < 0)
+                    flag = new int[]{0, -1, 0};
+                else if (end_location[2] < 0)
+                    flag = new int[]{0, -1, 0};
+                else if (end_location[1] > 0)
+                    flag = new int[]{1, 0, 0};
+            }else if( oldFlag[0] == -1 && oldFlag[1] == 0 && oldFlag[2] == 0 ) {
+                if (end_location[0] < 0)
+                    flag = new int[]{0, -1, 0};
+                else if (end_location[2] > 0)
+                    flag = new int[]{0, 0, 1};
+                else if (end_location[1] > 0)
+                    flag = new int[]{0, 1, 0};
+                else if (end_location[2] < 0)
+                    flag = new int[]{0, 0, -1};
+                else if (end_location[1] < 0)
+                    flag = new int[]{0, -1,0};
+            }else if( oldFlag[0] == 0 && oldFlag[1] == -1 && oldFlag[2] == 0 ) {
+                if (end_location[1] < 0)
+                    flag = new int[]{0, -1, 0};
+                else if (end_location[2] > 0)
+                    flag = new int[]{0, 0, 1};
+                else if (end_location[0] < 0)
+                    flag = new int[]{-1, 0, 0};
+                else if (end_location[2] < 0)
+                    flag = new int[]{0, 0, -1};
+                else if (end_location[1] > 0)
+                    flag = new int[]{0, 1,0};
+            }
+
+            //지금가고싶은 방향
+            int[] temp_location = {0, 0, 0};
+            temp_location[0] = entity.getX() + flag[0];
+            temp_location[1] = entity.getY() + flag[1];
+            temp_location[2] = entity.getZ() + flag[2];
+
+            if(flag[0] == 0 && flag[1] == 1 && flag[2] == 0 ) {
+                if (check_sensor(flag, entity.getD(), temp_location)) {
+                    // y + 1 에는 장애물이 있음 그러면
+                    // 현재 위에 장애물이 있나 확인
+                    temp_location[0] = entity.getX();
+                    temp_location[1] = entity.getY();
+                    temp_location[2] = entity.getZ() + 1;
+                    if (check_sensor(flag, entity.getD(), temp_location)) {
+                        //엥 위에도 장애물이 있네 그러면 현재 위치에서 오른쪽도 확인
+                        temp_location[0] = entity.getX() + 1;
+                        temp_location[1] = entity.getY();
+                        temp_location[2] = entity.getZ();
+                        if (check_sensor(flag, entity.getD(), temp_location)) {
+                            //엥 왼쪽에도 장애물이 있네 그러면 현재 위치에서 아래쪽도 확인
+                            temp_location[0] = entity.getX();
+                            temp_location[1] = entity.getY();
+                            temp_location[2] = entity.getZ() - 1;
+                            if (check_sensor(flag, entity.getD(), temp_location)) {
+                                //엥 아래쪽에도 장애물이 있네 그러면 현재 위치에서 왼쪽도 확인
+                                temp_location[0] = entity.getX() - 1;
+                                temp_location[1] = entity.getY();
+                                temp_location[2] = entity.getZ();
+                                if (check_sensor(flag, entity.getD(), temp_location)) {
+                                    obstacle_flag = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(flag[0] == 0 && flag[1] == 0 && flag[2] == 1 ) {
+                if (check_sensor(flag, entity.getD(), temp_location)) {
+                    temp_location[0] = entity.getX();
+                    temp_location[1] = entity.getY() - 1;
+                    temp_location[2] = entity.getZ() ;
+                    if (check_sensor(flag, entity.getD(), temp_location)) {
+                        temp_location[0] = entity.getX() - 1 ;
+                        temp_location[1] = entity.getY();
+                        temp_location[2] = entity.getZ();
+                        if (check_sensor(flag, entity.getD(), temp_location)) {
+                            temp_location[0] = entity.getX();
+                            temp_location[1] = entity.getY() + 1;
+                            temp_location[2] = entity.getZ();
+                            if (check_sensor(flag, entity.getD(), temp_location)) {
+                                temp_location[0] = entity.getX() + 1;
+                                temp_location[1] = entity.getY();
+                                temp_location[2] = entity.getZ();
+                                if (check_sensor(flag, entity.getD(), temp_location)) {
+                                    obstacle_flag = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(flag[0] == 1 && flag[1] == 0 && flag[2] == 0 ) {
+                if (check_sensor(flag, entity.getD(), temp_location)) {
+                    temp_location[0] = entity.getX();
+                    temp_location[1] = entity.getY();
+                    temp_location[2] = entity.getZ() + 1;
+                    if (check_sensor(flag, entity.getD(), temp_location)) {
+                        temp_location[0] = entity.getX() ;
+                        temp_location[1] = entity.getY() - 1;
+                        temp_location[2] = entity.getZ();
+                        if (check_sensor(flag, entity.getD(), temp_location)) {
+                            temp_location[0] = entity.getX();
+                            temp_location[1] = entity.getY();
+                            temp_location[2] = entity.getZ() - 1;
+                            if (check_sensor(flag, entity.getD(), temp_location)) {
+                                temp_location[0] = entity.getX();
+                                temp_location[1] = entity.getY() + 1;
+                                temp_location[2] = entity.getZ();
+                                if (check_sensor(flag, entity.getD(), temp_location)) {
+                                    obstacle_flag = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(flag[0] == 0 && flag[1] == 0 && flag[2] == -1 ) {
+                if (check_sensor(flag, entity.getD(), temp_location)) {
+                    temp_location[0] = entity.getX() - 1;
+                    temp_location[1] = entity.getY() ;
+                    temp_location[2] = entity.getZ() ;
+                    if (check_sensor(flag, entity.getD(), temp_location)) {
+                        temp_location[0] = entity.getX() ;
+                        temp_location[1] = entity.getY() + 1;
+                        temp_location[2] = entity.getZ();
+                        if (check_sensor(flag, entity.getD(), temp_location)) {
+                            temp_location[0] = entity.getX() + 1;
+                            temp_location[1] = entity.getY();
+                            temp_location[2] = entity.getZ();
+                            if (check_sensor(flag, entity.getD(), temp_location)) {
+                                temp_location[0] = entity.getX();
+                                temp_location[1] = entity.getY() - 1;
+                                temp_location[2] = entity.getZ();
+                                if (check_sensor(flag, entity.getD(), temp_location)) {
+                                    obstacle_flag = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(flag[0] == -1 && flag[1] == 0 && flag[2] == 0 ) {
+                if (check_sensor(flag, entity.getD(), temp_location)) {
+                    temp_location[0] = entity.getX() ;
+                    temp_location[1] = entity.getY() ;
+                    temp_location[2] = entity.getZ() + 1;
+                    if (check_sensor(flag, entity.getD(), temp_location)) {
+                        temp_location[0] = entity.getX() ;
+                        temp_location[1] = entity.getY() + 1;
+                        temp_location[2] = entity.getZ();
+                        if (check_sensor(flag, entity.getD(), temp_location)) {
+                            temp_location[0] = entity.getX();
+                            temp_location[1] = entity.getY();
+                            temp_location[2] = entity.getZ() - 1;
+                            if (check_sensor(flag, entity.getD(), temp_location)) {
+                                temp_location[0] = entity.getX();
+                                temp_location[1] = entity.getY() - 1;
+                                temp_location[2] = entity.getZ();
+                                if (check_sensor(flag, entity.getD(), temp_location)) {
+                                    obstacle_flag = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(flag[0] == 0 && flag[1] == -1 && flag[2] == 0 ) {
+                if (check_sensor(flag, entity.getD(), temp_location)) {
+                    temp_location[0] = entity.getX() ;
+                    temp_location[1] = entity.getY() ;
+                    temp_location[2] = entity.getZ() + 1;
+                    if (check_sensor(flag, entity.getD(), temp_location)) {
+                        temp_location[0] = entity.getX() -1;
+                        temp_location[1] = entity.getY();
+                        temp_location[2] = entity.getZ();
+                        if (check_sensor(flag, entity.getD(), temp_location)) {
+                            temp_location[0] = entity.getX();
+                            temp_location[1] = entity.getY();
+                            temp_location[2] = entity.getZ() - 1;
+                            if (check_sensor(flag, entity.getD(), temp_location)) {
+                                temp_location[0] = entity.getX() + 1;
+                                temp_location[1] = entity.getY();
+                                temp_location[2] = entity.getZ();
+                                if (check_sensor(flag, entity.getD(), temp_location)) {
+                                    obstacle_flag = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            int temp_x =   entity.getX();
+            int temp_y =   entity.getY();
+            int temp_z =   entity.getZ();
+
+            entity.setX(temp_location[0]);
+            entity.setY(temp_location[1]);
+            entity.setZ( temp_location[2]);
+            oldFlag = flag;
+
+            if (coordinate[0] == entity.getX() && coordinate[1] == entity.getY() && coordinate[2] == entity.getZ()) {
+                if(obstacle_sensor(temp_location)){
+                    entity.setX(temp_x);
+                    entity.setY(temp_y);
+                    entity.setZ(temp_z);
+                    System.out.println("********* x: "+temp_x+" y:  "+temp_y+"  z:  "+temp_z+"   **********");
+                    return entity;
+                }
+                System.out.println("********* x: "+temp_location[0]+" y:  "+temp_location[1]+"  z:  "+temp_location[2]+"   **********");
                 return entity;
             }
         }
     }
 
-    private boolean sensor(int[] flag, int distance, Robot entity) {
+    private boolean _sensor(int[] flag, int distance, Robot entity) {
         double x = entity.getX();
         double y = entity.getY();
         double z = entity.getZ();
@@ -261,21 +525,34 @@ public class OutputMachineCommand {
         }
         return false;
     }
-         /*
-            if (flag[0] == 1 && Integer.parseInt(split[0]) - entity.getX() <= 0) continue;
-            else if(flag[0]==0 && Integer.parseInt(split[0])==entity.getX()) continue;
-            else if (flag[0] == -1 && entity.getX() - Integer.parseInt(split[0]) <= 0) continue;
-            if (flag[1] == 1 && Integer.parseInt(split[1]) - entity.getY() <= 0) continue;
-            else if(flag[1]==0 && Integer.parseInt(split[1])==entity.getY()) continue;
-            else if (flag[1] == -1 && entity.getY() - Integer.parseInt(split[1]) <= 0) continue;
-            if (flag[2] == 1 && Integer.parseInt(split[2]) - entity.getZ() <= 0) continue;
-            else if(flag[2]==0 && Integer.parseInt(split[2])==entity.getZ()) continue;
-            else if (flag[2] == -1 && entity.getZ() - Integer.parseInt(split[2]) <= 0) continue;
-            x = Integer.parseInt(split[0]) - entity.getX();
-            y = Integer.parseInt(split[1]) - entity.getY();
-            z = Integer.parseInt(split[2]) - entity.getZ();
 
-             */
+
+    private boolean obstacle_sensor(int[] temp_location) {
+        int x = temp_location[0];
+        int y = temp_location[1];
+        int z = temp_location[2];
+        for (int i = 0; i < obstacle.length; i++) {
+            String[] split = obstacle[i].split(",");
+            if (x == Integer.parseInt(split[0]) && y == Integer.parseInt(split[1]) && z == Integer.parseInt(split[2])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean check_sensor(int[] flag, int distance, int[] temp_location) {
+        int x = temp_location[0];
+        int y = temp_location[1];
+        int z = temp_location[2];
+        for (int i = 0; i < obstacle.length; i++) {
+            String[] split = obstacle[i].split(",");
+            if (x == Integer.parseInt(split[0]) && y == Integer.parseInt(split[1]) && z == Integer.parseInt(split[2])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private boolean conditionCheck(Robot robot, String string) {
         String[] check = string.split(",");

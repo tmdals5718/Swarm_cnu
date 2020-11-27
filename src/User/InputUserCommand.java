@@ -11,7 +11,7 @@ public class InputUserCommand {
     OutputMachineCommand robot;
     Map<String,Robot> data;
     public InputUserCommand(Map<String,Robot> robots) {
-        System.out.println("1");
+        System.out.println("2");
         this.data=robots;
     }
 

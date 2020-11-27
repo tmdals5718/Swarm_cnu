@@ -9,7 +9,7 @@ public class OutputMachineCommand {
     Map<String, Robot> robots;
     private String command;
     private String[] target;
-    private String[] obstacle = {"3,3,3"};
+    private String[] obstacle = {"0,0,2","0,0,3","0,-1,3"};
     Scanner scanner = new Scanner(System.in);
 
     public OutputMachineCommand(String command, Map<String, Robot> robots) {

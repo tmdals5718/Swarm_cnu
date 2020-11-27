@@ -9,7 +9,7 @@ public class OutputMachineCommand {
     Map<String, Robot> robots;
     private String command;
     private String[] target;
-    private String[] obstacle = {"1,1,1"};
+    private String[] obstacle = {"3,3,3"};
     Scanner scanner = new Scanner(System.in);
 
     public OutputMachineCommand(String command, Map<String, Robot> robots) {
@@ -90,19 +90,23 @@ public class OutputMachineCommand {
                     robots.put(target[i - 1], movement(entity, location));
                     continue;
                 case "4":
-                    location = grammar[2].split(",");
-                    while (Math.abs(entity.getX() - Integer.parseInt(location[0])) < entity.getD()) {
-                        if (entity.getX() - Integer.parseInt(location[0]) >= 0) entity.setX(entity.getX() + 1);
-                        else if (entity.getX() - Integer.parseInt(location[0]) < 0) entity.setX(entity.getX() - 1);
-                    }
 
-                    while (Math.abs(entity.getY() - Integer.parseInt(location[1])) < entity.getD()) {
-                        if (entity.getY() - Integer.parseInt(location[1]) >= 0) entity.setY(entity.getY() + 1);
-                        else if (entity.getY() - Integer.parseInt(location[1]) < 0) entity.setY(entity.getY() - 1);
-                    }
-                    while (Math.abs(entity.getZ() - Integer.parseInt(location[2])) < entity.getD()) {
-                        if (entity.getZ() - Integer.parseInt(location[2]) >= 0) entity.setZ(entity.getZ() + 1);
-                        else if (entity.getZ() - Integer.parseInt(location[2]) < 0) entity.setZ(entity.getZ() - 1);
+                    location = grammar[2].split(",");
+                    while (Math.abs(entity.getX() - Integer.parseInt(location[0])) < entity.getD() && Math.abs(entity.getY() - Integer.parseInt(location[1])) < entity.getD() && Math.abs(entity.getY() - Integer.parseInt(location[1])) < entity.getD()) {
+                        String[] target = new String[3];
+                        if (entity.getX() - Integer.parseInt(location[0]) >= 0)
+                            target[0] = Integer.toString(entity.getX() + 1);
+                        else if (entity.getX() - Integer.parseInt(location[0]) < 0)
+                            target[0] = Integer.toString(entity.getX() - 1);
+                        if (entity.getY() - Integer.parseInt(location[1]) >= 0)
+                            target[1] = Integer.toString(entity.getY() + 1);
+                        else if (entity.getY() - Integer.parseInt(location[1]) < 0)
+                            target[1] = Integer.toString(entity.getY() - 1);
+                        if (entity.getZ() - Integer.parseInt(location[2]) >= 0)
+                            target[2] = Integer.toString(entity.getZ() + 1);
+                        else if (entity.getZ() - Integer.parseInt(location[2]) < 0)
+                            target[2] = Integer.toString(entity.getZ() - 1);
+                        entity = movement(entity, target);
                     }
                     robots.put(target[i - 1], entity);
                     continue;
@@ -220,21 +224,74 @@ public class OutputMachineCommand {
             if (coordinate[2] > z) flag[2] = +1;
             else if (coordinate[2] < z) flag[2] = -1;
             else if (coordinate[2] == 0) flag[2] = 0;
+            System.out.println(entity.getX()+" / "+entity.getY()+" / "+entity.getZ());
             if (sensor(flag, entity.getD(), entity)) {
-                location[0] = Integer.toString(entity.getX());
-                location[1] = Integer.toString(entity.getY() + 1);
-                location[2] = Integer.toString(entity.getZ());
-                entity = movement(entity, location);
+
+                int a = 0, b = 0, c = 0;
+                if (flag[0] == 0 && flag[1] == 0 && flag[2] != 0) {
+                    a = flag[0];
+                    b = flag[2];
+                    c = flag[1];
+                } else if (flag[0] != 0 && flag[1] == 0 && flag[2] == 0) {
+                    a = flag[1];
+                    b = flag[0];
+                    c = flag[2];
+                } else {
+                    a = flag[0];
+                    b = flag[1];
+                    c = flag[2];
+                }
+
+                if (a == 0 && b == +1 && c == 0 && !(flag[0] == 0 && flag[1] == 1 && flag[2] == 0)) {
+                    String[] temp = {Integer.toString(entity.getX()), Integer.toString(entity.getY() + 1), Integer.toString(entity.getZ())};
+                    entity = movement(entity, temp);
+                } else if (a == 0 && b == 0 && c == 1 || (flag[0] == 0 && flag[1] == 1 && flag[2] == 0)) {
+                    String[] temp = {Integer.toString(entity.getX()), Integer.toString(entity.getY()), Integer.toString(entity.getZ() + 1)};
+                    entity = movement(entity, temp);
+                } else if (a == 1 && b == 0 && c == 0) {
+                    String[] temp = {Integer.toString(entity.getX() + 1), Integer.toString(entity.getY()), Integer.toString(entity.getZ())};
+                    entity = movement(entity, temp);
+                } else if (a == 0 && b == 0 && c == -1 || flag[0]==0 && flag[1]==-1 && flag[2]==0) {
+                    String[] temp = {Integer.toString(entity.getX()), Integer.toString(entity.getY()), Integer.toString(entity.getZ() - 1)};
+                    entity = movement(entity, temp);
+                } else if (a == -1 && b == 0 && c == 0) {
+                    String[] temp = {Integer.toString(entity.getX() - 1), Integer.toString(entity.getY()), Integer.toString(entity.getZ())};
+                    entity = movement(entity, temp);
+                } else if(a==0 && b== -1 && c==0) {
+                    String[] temp = {Integer.toString(entity.getX()), Integer.toString(entity.getY()-1), Integer.toString(entity.getZ())};
+                    entity = movement(entity, temp);
+                }
+                System.out.println(entity.getX()+" / "+entity.getY()+" / "+entity.getZ());
             }
-            if (flag[0] == 1 && coordinate[0] != x) x++;
-            else if (flag[0] == -1 && coordinate[0] != x) x--;
-            if (flag[1] == 1 && coordinate[1] != y) y++;
-            else if (flag[1] == -1 && coordinate[1] != y) y--;
-            if (flag[2] == 1 && coordinate[2] != z) z++;
-            else if (flag[2] == -1 && coordinate[2] != z) z--;
-            entity.setX(x);
-            entity.setY(y);
-            entity.setZ(z);
+
+
+            x = entity.getX();
+            y = entity.getY();
+            z = entity.getZ();
+            if (flag[0] == 1 && coordinate[0] != x) {
+                x++;
+            }
+            else if (flag[0] == -1 && coordinate[0] != x){
+                x--;
+            }
+            if (flag[1] == 1 && coordinate[1] != y) {
+                y++;
+            }
+            else if (flag[1] == -1 && coordinate[1] != y){
+                y--;
+            }
+            if (flag[2] == 1 && coordinate[2] != z) {
+                z++;
+            }
+            else if (flag[2] == -1 && coordinate[2] != z){
+                z--;
+            }
+            if (!sensor(flag, entity.getD(), entity)) {
+                entity.setX(x);
+                entity.setY(y);
+                entity.setZ(z);
+            }
+            System.out.println(entity.getX()+" / "+entity.getY()+" / "+entity.getZ());
             if (coordinate[0] == x && coordinate[1] == y && coordinate[2] == z) {
                 return entity;
             }
@@ -242,10 +299,11 @@ public class OutputMachineCommand {
     }
 
     private boolean sensor(int[] flag, int distance, Robot entity) {
-        double x = entity.getX();
-        double y = entity.getY();
-        double z = entity.getZ();
+
         for (int i = 0; i < obstacle.length; i++) {
+            double x = entity.getX();
+            double y = entity.getY();
+            double z = entity.getZ();
             String[] split = obstacle[i].split(",");
             for (int j = 0; j < distance; j++) {
                 if (flag[0] == 1) x++;
@@ -261,21 +319,7 @@ public class OutputMachineCommand {
         }
         return false;
     }
-         /*
-            if (flag[0] == 1 && Integer.parseInt(split[0]) - entity.getX() <= 0) continue;
-            else if(flag[0]==0 && Integer.parseInt(split[0])==entity.getX()) continue;
-            else if (flag[0] == -1 && entity.getX() - Integer.parseInt(split[0]) <= 0) continue;
-            if (flag[1] == 1 && Integer.parseInt(split[1]) - entity.getY() <= 0) continue;
-            else if(flag[1]==0 && Integer.parseInt(split[1])==entity.getY()) continue;
-            else if (flag[1] == -1 && entity.getY() - Integer.parseInt(split[1]) <= 0) continue;
-            if (flag[2] == 1 && Integer.parseInt(split[2]) - entity.getZ() <= 0) continue;
-            else if(flag[2]==0 && Integer.parseInt(split[2])==entity.getZ()) continue;
-            else if (flag[2] == -1 && entity.getZ() - Integer.parseInt(split[2]) <= 0) continue;
-            x = Integer.parseInt(split[0]) - entity.getX();
-            y = Integer.parseInt(split[1]) - entity.getY();
-            z = Integer.parseInt(split[2]) - entity.getZ();
 
-             */
 
     private boolean conditionCheck(Robot robot, String string) {
         String[] check = string.split(",");

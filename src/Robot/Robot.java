@@ -18,7 +18,7 @@ public class Robot {
         this.y=0;
         this.z=0;
         this.h=0;
-        this.d=2;
+        this.d=1;
         this.state = "Deactivated";
         this.camera = "Off";
         this.function = "Off";
